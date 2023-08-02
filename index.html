@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Surf's App Gym</title>
+    <style>
+     @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');
+
+    body {
+      font-family: 'Roboto', sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #f5f5f5;
+      color: #333;
+      background-color: #f5f5f5; 
+    }
+
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    #maromba{
+        display: block;
+        width: 100%;
+        max-width: 300px;
+        margin: 0 auto;
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    h1, h2 {
+      color: #007bff;
+      text-align: center; /* Professional blue color for headings */
+    }
+    .add-athlete,
+    .athlete-list {
+      background-color: #fff;
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+
+    .add-athlete input[type="text"] {
+      width: 90%;
+      padding: 10px;
+      margin-bottom: 10px;
+    }
+
+    .add-athlete button {
+      background-color: #4caf50;
+      color: #fff;
+      padding: 10px 20px;
+      border: none;
+      cursor: pointer;
+    }
+
+    .athlete-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    .athlete-item button {
+      background-color: #007bff;
+      color: #fff;
+      padding: 5px 10px;
+      border: none;
+      cursor: pointer;
+    }
+
+    @media only screen and (max-width: 480px) {
+      .container {
+        max-width: 100%;
+        padding: 10px;
+      }
+    }
+    .loading {
+          display: inline-block;
+          border: 4px solid rgba(0, 0, 0, 0.1);
+          border-left-color: #007bff;
+          border-radius: 50%;
+          width: 40px;
+          height: 40px;
+          animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
+
+        .alert {
+          background-color: #f44336;
+          color: white;
+          padding: 10px;
+          text-align: center;
+        }
+
+        /* Hover Styling */
+        .add-athlete button:hover,
+        .athlete-item button:hover {
+          background-color: #3a9fff;
+        }
+      @media only screen and (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+            .add-athlete input[type="text"] {
+                padding: 8px;
+            }
+        }
+
+        @media only screen and (max-width: 480px) {
+            .container {
+                padding: 5px;
+            }
+            .add-athlete input[type="text"] {
+                padding: 6px;
+            }
+            .athlete-item {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .athlete-item button {
+                margin-top: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Surf's App Gym (academia do surfe, em inglês)</h1>
+        <img id="maromba" src="./images/maromba.jpeg" alt="aplicativo-maromba">
+        <div class="add-athlete">
+            <h2>Adicionar Novo Atleta</h2>
+            <input type="text" id="athleteName" placeholder="Nome do atleta">
+            <button onclick="registerAthlete()">Registrar</button>
+        </div>
+        <div class="athlete-list">
+            <h2>Lista de atletas</h2>
+            <div id="loadingIndicator" style="display: none;">
+                <div class="loading"></div>
+                <p>Carregando(Loading, em inglês)...</p>
+            </div>
+            <div id="errorMessage" style="display: none;" class="alert">Um pouco de paciência, por favor. Servidor carregando. Atualize a pagina e aguarde</div>
+            <ul id="athleteList"></ul>
+        </div>
+    </div>
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            loadAthletes();
+        });
+
+        async function loadAthletes() {
+                const athleteList = document.getElementById("athleteList");
+                const loadingIndicator = document.getElementById("loadingIndicator");
+                const errorMessage = document.getElementById("errorMessage");
+
+                // Show loading indicator and hide the list and error message
+                athleteList.innerHTML = "";
+                loadingIndicator.style.display = "block";
+                errorMessage.style.display = "none";
+
+                try {
+                    const response = await fetch("https://gymapi-jrq9.onrender.com/view-all-athletes");
+                    const athletes = await response.json();
+
+                    // Hide loading indicator and show the list
+                    loadingIndicator.style.display = "none";
+                    athleteList.innerHTML = "";
+
+                    athletes.forEach((athlete) => {
+                        const listItem = document.createElement("li");
+                        listItem.className = "athlete-item";
+                        listItem.innerHTML = `<div style="margin:10px">
+                <span>${athlete.name}</span>
+                <span>-Treinos: ${athlete.attendance}</span>
+                <button onclick="incrementAttendance(${athlete.id})">Increment</button></div>
+              `;
+                        athleteList.appendChild(listItem);
+                    });
+                } catch (error) {
+                    // Hide loading indicator and show the error message
+                    loadingIndicator.style.display = "none";
+                    errorMessage.style.display = "block";
+                    console.log("Error fetching athletes:", error);
+                }
+            }
+
+        async function registerAthlete() {
+            const athleteName = document.getElementById("athleteName").value.trim();
+
+            if (athleteName === "") {
+                alert("Please enter a valid athlete name.");
+                return;
+            }
+
+            try {
+                const response = await fetch("https://gymapi-jrq9.onrender.com/register-athlete", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({ name: athleteName }),
+                });
+
+                if (response.ok) {
+                    document.getElementById("athleteName").value = "";
+                    loadAthletes();
+                } else {
+                    console.log("Failed to register athlete.");
+                }
+            } catch (error) {
+                alert("Erro no registro do atleta");
+                console.log("Error registering athlete:", error);
+            }
+        }
+
+        async function incrementAttendance(id) {
+            try {
+                const response = await fetch("https://gymapi-jrq9.onrender.com/increment-attendance", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({ id: id }),
+                });
+
+                if (response.ok) {
+                    loadAthletes();
+                    alert("Treino registrado com sucesso!");
+                } else {
+                    console.log("Failed to increment attendance.");
+                }
+            } catch (error) {
+                console.log("Error incrementing attendance:", error);
+                alert("Espere um intervalo de 6 horas para registrar outro treino")
+            }
+        }
+    </script>
+</body>
+</html>
