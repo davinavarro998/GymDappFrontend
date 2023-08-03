@@ -176,15 +176,16 @@
                     athleteList.innerHTML = "";
 
                     athletes.forEach((athlete) => {
-                        const listItem = document.createElement("li");
-                        listItem.className = "athlete-item";
-                        listItem.innerHTML = `<div style="margin:10px">
-                <span>${athlete.name}</span>
-                <span>-Treinos: ${athlete.attendance}</span>
-                <button onclick="incrementAttendance(${athlete.id})">PONTUAR</button></div>
-              `;
-                        athleteList.appendChild(listItem);
-                    });
+                        if(athlete.name !== ""){
+                            const listItem = document.createElement("li");
+                            listItem.className = "athlete-item";
+                            listItem.innerHTML = `<div style="margin:10px">
+                                <span>${athlete.name}</span>
+                                <span>-Treinos: ${athlete.attendance}</span>
+                                <button onclick="incrementAttendance(${athlete.id})">PONTUAR</button></div>`;
+                            athleteList.appendChild(listItem);
+                    }
+                });
                 } catch (error) {
                     // Hide loading indicator and show the error message
                     loadingIndicator.style.display = "none";
